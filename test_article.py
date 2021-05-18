@@ -1,6 +1,7 @@
 import os
 import pytest
 import shutil
+import subprocess
 
 
 @pytest.fixture(scope='module')
@@ -25,8 +26,24 @@ def test_init_working_tree(manage_dir):
 
 
 def test_create_a_file(manage_dir):
-    wt = os.path.join(manage_dir, 'test_create_a_file')
+    wt = os.path.join(manage_dir, 'create_a_file')
     init_working_tree(wt)
     os.chdir(wt)
-    os.system('echo "Hello, world!" > greeting')
-    assert os.path.exists(os.path.join(wt, 'greeting'))
+    greeting = os.path.join(wt, 'greeting')
+    with open(greeting, "w") as f:
+        f.write("Hello, world")
+    assert os.path.exists(greeting)
+
+
+def test_git_hash_object(manage_dir):
+    wt = os.path.join(manage_dir, 'git_hash_object')
+    init_working_tree(wt)
+    os.chdir(wt)
+    with open(os.path.join(wt, 'greeting'), "w") as f:
+        f.write("Hello, world")
+    out = subprocess.run('git hash-object greeting'.split(),
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.STDOUT)
+    hash_value = out.stdout.decode("ascii").strip()
+    print(hash_value)
+    assert len(hash_value) == 40
