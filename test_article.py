@@ -51,22 +51,22 @@ def test_git_hashobject(manage_dir):
     init_dir(wt)
     os.chdir(wt)
     create_greeting(wt)
-    out = subprocess.run('git hash-object greeting'.split(), stdout=PIPE, stderr=STDOUT)
-    hash_value = out.stdout.decode("ascii").strip()
+    output = subprocess.run('git hash-object greeting'.split(), stdout=PIPE, stderr=STDOUT)
+    hash_value = output.stdout.decode("ascii").strip()
     # print("(", hash_value, ")")
     # hash_value: af5626b4a114abcb82d63db7c8082c3c4756e51b
     assert len(hash_value) == 40
 
 
 def commit_greeting():
-    out = subprocess.run('git init'.split(), stdout=PIPE, stderr=STDOUT)
-    msg = out.stdout.decode("ascii").strip()
+    output = subprocess.run('git init'.split(), stdout=PIPE, stderr=STDOUT)
+    msg = output.stdout.decode("ascii").strip()
     # print("msg: {}".format(msg))
-    out = subprocess.run('git add greeting'.split(), stdout=PIPE, stderr=STDOUT)
-    msg = out.stdout.decode("ascii").strip()
+    output = subprocess.run('git add greeting'.split(), stdout=PIPE, stderr=STDOUT)
+    msg = output.stdout.decode("ascii").strip()
     # print("msg: {}".format(msg))
-    out = subprocess.run('git commit -m'.split() + ["Added my greeting"], stdout=PIPE, stderr=STDOUT)
-    msg = out.stdout.decode("ascii").strip()
+    output = subprocess.run('git commit -m'.split() + ["Added my greeting"], stdout=PIPE, stderr=STDOUT)
+    msg = output.stdout.decode("ascii").strip()
     # print("msg: {}".format(msg))
 
 
@@ -78,12 +78,12 @@ def test_introducing_the_blob(manage_dir):
     #
     commit_greeting()
     #
-    out = subprocess.run('git cat-file -t af5626b'.split(), stdout=PIPE, stderr=STDOUT)
-    msg = out.stdout.decode("ascii").strip()
+    output = subprocess.run('git cat-file -t af5626b'.split(), stdout=PIPE, stderr=STDOUT)
+    msg = output.stdout.decode("ascii").strip()
     assert 'blob' in msg
     #
-    out = subprocess.run('git cat-file blob af5626b'.split(), stdout=PIPE, stderr=STDOUT)
-    msg = out.stdout.decode("ascii").strip()
+    output = subprocess.run('git cat-file blob af5626b'.split(), stdout=PIPE, stderr=STDOUT)
+    msg = output.stdout.decode("ascii").strip()
     assert 'Hello, world!' in msg
 
 
@@ -105,8 +105,8 @@ def test_blobs_are_stored_in_trees(manage_dir):
     とやれ。するとgreetingファイルのblobをポイントするtreeが
     みつかるはずだ。
     """
-    out = subprocess.run('git ls-tree HEAD'.split(), stdout=PIPE, stderr=STDOUT)
-    msg = out.stdout.decode("ascii").strip()
+    output = subprocess.run('git ls-tree HEAD'.split(), stdout=PIPE, stderr=STDOUT)
+    msg = output.stdout.decode("ascii").strip()
     # print("\n{}\n".format(msg))
     # 100644 blob af5626b4a114abcb82d63db7c8082c3c4756e51b greeting
     """
@@ -125,14 +125,14 @@ def test_blobs_are_stored_in_trees(manage_dir):
     見ることができていない。git rev-parse HEADを実行することで
     treeオブジェクトを見つけることができる。
     """
-    out = subprocess.run('git rev-parse HEAD'.split(), stdout=PIPE, stderr=STDOUT)
-    msg = out.stdout.decode("ascii").strip()
+    output = subprocess.run('git rev-parse HEAD'.split(), stdout=PIPE, stderr=STDOUT)
+    msg = output.stdout.decode("ascii").strip()
     # print("\n{}\n".format(msg))
     # 9429e3ec347cc51565026b3adbecd37be4f92601
     # treeオブジェクトのhash値は一定ではない。
     # タイミングによりけりでさまざまなhash値になりうる。
-    out = subprocess.run('git cat-file -t HEAD'.split(), stdout=PIPE, stderr=STDOUT)
-    msg = out.stdout.decode("ascii").strip()
+    output = subprocess.run('git cat-file -t HEAD'.split(), stdout=PIPE, stderr=STDOUT)
+    msg = output.stdout.decode("ascii").strip()
     # print("\n{}\n".format(msg))
     # commit
     """
@@ -140,8 +140,8 @@ def test_blobs_are_stored_in_trees(manage_dir):
     引数に指定されたオブジェクトの内容ではなくてオブジェクトのtypeが
     表示される。HEADは常にcommitオブジェクトだ。
     """
-    out = subprocess.run('git cat-file commit HEAD'.split(), stdout=PIPE, stderr=STDOUT)
-    msg = out.stdout.decode("ascii").strip()
+    output = subprocess.run('git cat-file commit HEAD'.split(), stdout=PIPE, stderr=STDOUT)
+    msg = output.stdout.decode("ascii").strip()
     # print("\n{}\n".format(msg))
     # tree 0563f77d884e4f79ce95117e2d686d7d6e282887
     # author kazurayam <kazuaki.urayama@gmail.com> 1621389261 +0900
@@ -166,8 +166,8 @@ def test_blobs_are_stored_in_trees(manage_dir):
     hash値が0563f77..であるオブジェクトがたしかにHEADが指している
     treeオブジェクトであることを確かめてみよう。
     """
-    out = subprocess.run('git ls-tree 0563f77'.split(), stdout=PIPE, stderr=STDOUT)
-    msg = out.stdout.decode("ascii").strip()
+    output = subprocess.run('git ls-tree 0563f77'.split(), stdout=PIPE, stderr=STDOUT)
+    msg = output.stdout.decode("ascii").strip()
     # print("\n{}\n".format(msg))
     # 100644 blob af5626b4a114abcb82d63db7c8082c3c4756e51b    greeting
     """
@@ -177,8 +177,8 @@ def test_blobs_are_stored_in_trees(manage_dir):
     このことをfindコマンドで確かめてみよう。
     """
 
-    out = subprocess.run('find .git/objects -type f'.split(), stdout=PIPE, stderr=STDOUT)
-    msg = out.stdout.decode("ascii").strip()
+    output = subprocess.run('find .git/objects -type f'.split(), stdout=PIPE, stderr=STDOUT)
+    msg = output.stdout.decode("ascii").strip()
     # print("\n{}\n".format(msg))
     # .git/objects/05/63f77d884e4f79ce95117e2d686d7d6e282887
     # .git/objects/54/9d175982bea318c6eba58ac5046f947f00eba8
@@ -188,29 +188,29 @@ def test_blobs_are_stored_in_trees(manage_dir):
     そして3つのオブジェクトのhash値は上記の例で現れた値にほかならない。
     3つのオブジェクトがどういうtypeのオブジェクトであるか、確かめておこう。
     """
-    out = subprocess.run('git cat-file -t 0563f77'.split(), stdout=PIPE, stderr=STDOUT)
-    msg = out.stdout.decode("ascii").strip()
+    output = subprocess.run('git cat-file -t 0563f77'.split(), stdout=PIPE, stderr=STDOUT)
+    msg = output.stdout.decode("ascii").strip()
     # print("\n{}\n".format(msg))
 
     # commitオブジェクトのhash値は一定でない。同じgreetingファイルをcommitしたのでも、コミットした時刻が
     # 違っていればいるからだ。だから下記のように549d175という固定文字を指定してcommitオブジェクトをcat-file
     # しようとするときっとエラーになる。だからコメントアウトした。
-    # out = subprocess.run('git cat-file -t 549d175'.split(), stdout=PIPE, stderr=STDOUT)
-    # msg = out.stdout.decode("ascii").strip()
+    # output = subprocess.run('git cat-file -t 549d175'.split(), stdout=PIPE, stderr=STDOUT)
+    # msg = output.stdout.decode("ascii").strip()
     # print("\n{}\n".format(msg))
     #
-    out = subprocess.run('git cat-file -t af5626b'.split(), stdout=PIPE, stderr=STDOUT)
-    msg = out.stdout.decode("ascii").strip()
+    output = subprocess.run('git cat-file -t af5626b'.split(), stdout=PIPE, stderr=STDOUT)
+    msg = output.stdout.decode("ascii").strip()
     # print("\n{}\n".format(msg))
 
     """
     git show HEADコマンドでHEADというエリアスが指すcommitオブジェクトの
     内容を調べられる。やってみよう。
     """
-    out = subprocess.run('git show HEAD'.split(), stdout=PIPE, stderr=STDOUT)
-    msg = out.stdout.decode("ascii").strip()
-    print("\n{}\n".format(msg))
-"""commit ea920998ab1630d9d92a4be618a5fdcfd428f657
+    output = subprocess.run('git show HEAD'.split(), stdout=PIPE, stderr=STDOUT)
+    msg = output.stdout.decode("ascii").strip()
+    # print("\n{}\n".format(msg))
+    '''commit ea920998ab1630d9d92a4be618a5fdcfd428f657
 Author: kazurayam <kazuaki.urayama@gmail.com>
 Date:   Wed May 19 18:16:30 2021 +0900
 
@@ -223,7 +223,23 @@ index 0000000..af5626b
 +++ b/greeting
 @@ -0,0 +1 @@
 +Hello, world!
-"""
+'''
+    """
+    git show HEADコマンドが応答したテキストの1行目をみれば
+    HEADに対応するcommitオブジェクトのhash値がわかる。そのhash値を引数として
+    git cat-file commit <hash>
+    を実行してみよう。そのcommitオブジェクトの中身を見ることができる。
+    """
+    commit_hash = output.stdout.decode("ascii").splitlines()[0].split(' ')[1]
+    output = subprocess.run("git cat-file commit {}".format(commit_hash).split(), stdout=PIPE, stderr=STDOUT)
+    msg = output.stdout.decode("ascii").strip()
+    print("\n{}\n".format(msg))
+    """tree 0563f77d884e4f79ce95117e2d686d7d6e282887
+author kazurayam <kazuaki.urayama@gmail.com> 1621417997 +0900
+committer kazurayam <kazuaki.urayama@gmail.com> 1621417997 +0900
+
+Added my greeting
+    """
 
 
 
