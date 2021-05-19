@@ -203,7 +203,27 @@ def test_blobs_are_stored_in_trees(manage_dir):
     msg = out.stdout.decode("ascii").strip()
     # print("\n{}\n".format(msg))
 
+    """
+    git show HEADコマンドでHEADというエリアスが指すcommitオブジェクトの
+    内容を調べられる。やってみよう。
+    """
+    out = subprocess.run('git show HEAD'.split(), stdout=PIPE, stderr=STDOUT)
+    msg = out.stdout.decode("ascii").strip()
+    print("\n{}\n".format(msg))
+"""commit ea920998ab1630d9d92a4be618a5fdcfd428f657
+Author: kazurayam <kazuaki.urayama@gmail.com>
+Date:   Wed May 19 18:16:30 2021 +0900
 
+Added my greeting
+
+diff --git a/greeting b/greeting
+new file mode 100644
+index 0000000..af5626b
+--- /dev/null
++++ b/greeting
+@@ -0,0 +1 @@
++Hello, world!
+"""
 
 
 
