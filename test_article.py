@@ -29,6 +29,21 @@ def create_greeting(wt):
         f.write("Hello, world!\n")
 
 
+def add_greeting(wt):
+    output = subprocess.run('git init'.split(), stdout=PIPE, stderr=STDOUT)
+    msg = output.stdout.decode("ascii").strip()
+    # print("msg: {}".format(msg))
+    output = subprocess.run('git add greeting'.split(), stdout=PIPE, stderr=STDOUT)
+    msg = output.stdout.decode("ascii").strip()
+    # print("msg: {}".format(msg))
+
+
+def commit_greeting():
+    output = subprocess.run('git commit -m'.split() + ["Added my greeting"], stdout=PIPE, stderr=STDOUT)
+    msg = output.stdout.decode("ascii").strip()
+    # print("msg: {}".format(msg))
+
+
 def test_init_working_tree(manage_dir):
     # wt stands for Working Tree
     wt = os.path.join(manage_dir, "init_working_tree")
@@ -58,24 +73,12 @@ def test_git_hashobject(manage_dir):
     assert len(hash_value) == 40
 
 
-def commit_greeting():
-    output = subprocess.run('git init'.split(), stdout=PIPE, stderr=STDOUT)
-    msg = output.stdout.decode("ascii").strip()
-    # print("msg: {}".format(msg))
-    output = subprocess.run('git add greeting'.split(), stdout=PIPE, stderr=STDOUT)
-    msg = output.stdout.decode("ascii").strip()
-    # print("msg: {}".format(msg))
-    output = subprocess.run('git commit -m'.split() + ["Added my greeting"], stdout=PIPE, stderr=STDOUT)
-    msg = output.stdout.decode("ascii").strip()
-    # print("msg: {}".format(msg))
-
-
 def test_introducing_the_blob(manage_dir):
     wt = os.path.join(manage_dir, 'git_init_add_commit')
     init_dir(wt)
     os.chdir(wt)
     create_greeting(wt)
-    #
+    add_greeting(wt)
     commit_greeting()
     #
     output = subprocess.run('git cat-file -t af5626b'.split(), stdout=PIPE, stderr=STDOUT)
@@ -92,7 +95,7 @@ def test_blobs_are_stored_in_trees(manage_dir):
     init_dir(wt)
     os.chdir(wt)
     create_greeting(wt)
-    #
+    add_greeting(wt)
     commit_greeting()
     #
     """
@@ -233,13 +236,84 @@ index 0000000..af5626b
     commit_hash = output.stdout.decode("ascii").splitlines()[0].split(' ')[1]
     output = subprocess.run("git cat-file commit {}".format(commit_hash).split(), stdout=PIPE, stderr=STDOUT)
     msg = output.stdout.decode("ascii").strip()
-    print("\n{}\n".format(msg))
+    # print("\n{}\n".format(msg))
     """tree 0563f77d884e4f79ce95117e2d686d7d6e282887
 author kazurayam <kazuaki.urayama@gmail.com> 1621417997 +0900
 committer kazurayam <kazuaki.urayama@gmail.com> 1621417997 +0900
 
 Added my greeting
     """
+
+
+def test_how_trees_are_made(manage_dir):
+    """
+    blobを保持するtreeがどう作られるか、
+    treeがその親となるcommitへどうリンクされるか、を見てみよう
+    indexにgreetingファイルをaddすることからtreeは始まる
+    """
+    wt = os.path.join(manage_dir, 'how_trees_are_made')
+    init_dir(wt)
+    os.chdir(wt)
+    create_greeting(wt)
+    add_greeting(wt)
+    """
+    まだコミットがひとつも無い時点でgit logすると失敗する
+    """
+    output = subprocess.run("git log".split(), stdout=PIPE, stderr=STDOUT)
+    assert output.returncode is not 0
+    msg = output.stdout.decode("ascii").strip()
+    assert "fatal: your current branch 'master' does not have any commits yet" in msg
+    # print("\n{}\n".format(msg))
+    """
+    git add greetingするとblobオブジェクトがひとつ作られる。
+    そのblobの中身はgreetingファイルをzlibで圧縮したもの。
+    そのblobの名前はgreetingファイルのSHA1ハッシュであり、af5626b..
+    git addコマンドによりこのblobオブジェクトは stage された状態になっている。
+    """
+    output = subprocess.run("git ls-files --stage".split(), stdout=PIPE, stderr=STDOUT)
+    msg = output.stdout.decode("ascii").strip()
+    # print("\n{}\n".format(msg))
+    # 100644 af5626b4a114abcb82d63db7c8082c3c4756e51b 0       greeting
+    assert "af5626b" in msg
+    assert "greeting" in msg
+    """
+    .git/index というファイルがあって、そのなかにこのblobオブジェクトが
+    存在していることが書かれている。
+    このblobオブジェクトはまだtreeによって参照されていない。
+    git write-treeコマンドを実行すると、indexの内容をひとつの
+    treeとして記録することになる。
+    """
+    output = subprocess.run("git write-tree".split(), stdout=PIPE, stderr=STDOUT)
+    msg = output.stdout.decode("ascii").strip()
+    tree_hash = msg
+    """
+    treeオブジェクトがひとつ作られた。そのhash値は0563f77..だ。
+    """
+    # print("\n{}\n".format(msg))
+    # 0563f77d884e4f79ce95117e2d686d7d6e282887
+    """
+    このtreeオブジェクトの中身はどんな内容だろうか?
+    """
+    output = subprocess.run("git cat-file -p {}".format(tree_hash).split(), stdout=PIPE, stderr=STDOUT)
+    msg = output.stdout.decode("ascii").strip()
+    assert "af5626b" in msg
+    assert "greeting" in msg
+    # print("\n{}\n".format(msg))
+    # 100644 blob af5626b4a114abcb82d63db7c8082c3c4756e51b    greeting
+    """
+    みてのとおり、treeオブジェクトにはblobオブジェクトのhash値と
+    元となったファイルのパスが書いてある
+    
+    こうやって作ったtreeオブジェクトを使って新しいcommitオブジェクトを
+    作ろう。git commit-tree <tree_hash>コマンドで
+    """
+    #output = subprocess.run("git commit-tree {}".format(tree_hash).split(), stdout=PIPE, stderr=STDOUT)
+    #assert output.returncode is 0
+    #msg = output.stdout.decode("ascii").string()
+
+
+
+
 
 
 
