@@ -3,6 +3,7 @@ http://keijinsonyaban.blogspot.com/2011/05/git.html#ct3
 """
 
 import os
+import re
 import pytest
 import shutil
 import subprocess
@@ -351,7 +352,7 @@ def test_how_trees_are_made(manage_dir):
     output = subprocess.run("git log".split(),
                             stdout=PIPE, stderr=STDOUT)
     msg = output.stdout.decode("ascii").strip()
-    print("\n{}\n".format(msg))
+    # print("\n{}\n".format(msg))
     """commit db35a3b0b0cd84098ba64f11af2eae13c1087127
 Author: kazurayam <kazuaki.urayama@gmail.com>
 Date:   Thu May 20 11:26:20 2021 +0900
@@ -360,14 +361,59 @@ Date:   Thu May 20 11:26:20 2021 +0900
     """
 
 
+def test_the_beauty_of_commits(manage_dir):
+    wt = os.path.join(manage_dir, 'the_beauty_of_commits')
+    init_dir(wt)
+    os.chdir(wt)
+    create_greeting(wt)
+    add_greeting(wt)
+    commit_greeting()
+    """
+    masterブランチのHEADつまり最新のものとして参照されているコミットを調べよう
+    """
+    output = subprocess.run("git branch -v".split(),
+                            stdout=PIPE, stderr=STDOUT)
+    msg = output.stdout.decode("ascii").strip()
+    #print("\n{}\n".format(msg))
+    """
+    * master 444a7a7 Added my greeting
+    """
+    commit_hash = msg.split()[2]
+    # e.g, commit_hash == '444a7a7'
+    # commitオブジェクトのhash値の先頭7桁が得られた
+    assert re.match(r'\w{7}', commit_hash)
+
+    """
+    commitオブジェクトのhash値を使って
+    ワーキングツリーをリセットすることができる。
+    エリアスHEADはここで指定されたcommitオブジェクトを指すように変更される。
+    """
+    output = subprocess.run("git reset --hard".split() + [commit_hash],
+                            stdout=PIPE, stderr=STDOUT)
+    msg = output.stdout.decode("ascii").strip()
+    # print("\n{}\n".format(msg))
+    # HEAD is now at 2c495c1 Added my greeting
+    """
+    git reset --hard commitId はワーキングツリーのなかに現在ある
+    すべての変更内容を消去する。
+
+    commitのIDを指定してワーキングツリーを戻す方法がもうひとつある。
+    git checkout だ。こちらはワーキングツリーの変更を消去しない。
+    またHEADが指すcommitIDはgit checkoutによって変更されない。
+    """
+    output = subprocess.run("git checkout".split() + [commit_hash],
+                            stdout=PIPE, stderr=STDOUT)
+    msg = output.stdout.decode("ascii").strip()
+    # print("\n{}\n".format(msg))
+    # HEAD is now at 9b189ef Added my greeting
 
 
+def test_a_commit_by_any_other_name():
+    pass
 
 
 
 """
-How trees are made
-The beauty of commits
 A commit by any other name…
 Branching and the power of rebase
 Index Cache: Meet the middle man
