@@ -268,7 +268,7 @@ def test_how_trees_are_made(manage_dir):
     git add greetingするとblobオブジェクトがひとつ作られる。
     そのblobの中身はgreetingファイルをzlibで圧縮したもの。
     そのblobの名前はgreetingファイルのSHA1ハッシュであり、af5626b..
-    git addコマンドによりこのblobオブジェクトは stage された状態になっている。
+    git addコマンドによりこのblobオブジェクトはindexに登録された状態(staged)になっている。
     """
     output = subprocess.run("git ls-files --stage".split(), stdout=PIPE, stderr=STDOUT)
     msg = output.stdout.decode("ascii").strip()
@@ -279,7 +279,7 @@ def test_how_trees_are_made(manage_dir):
     """
     .git/index というファイルがあって、そのなかにこのblobオブジェクトが
     存在していることが書かれている。
-    このblobオブジェクトはまだtreeによって参照されていない。
+    このblobオブジェクトはまだtreeになっていない。
     git write-treeコマンドを実行すると、indexの内容をひとつの
     treeとして記録することになる。
     """
@@ -304,15 +304,60 @@ def test_how_trees_are_made(manage_dir):
     みてのとおり、treeオブジェクトにはblobオブジェクトのhash値と
     元となったファイルのパスが書いてある
     
-    こうやって作ったtreeオブジェクトを使って新しいcommitオブジェクトを
-    作ろう。git commit-tree <tree_hash>コマンドで
+    こうやって作ったtreeオブジェクトを元にして新しいcommitオブジェクトを作ろう。
+    git commit-tree <tree_hash>コマンドで
     """
-    #output = subprocess.run("git commit-tree {}".format(tree_hash).split(), stdout=PIPE, stderr=STDOUT)
-    #assert output.returncode is 0
-    #msg = output.stdout.decode("ascii").string()
+    echo = subprocess.Popen(('echo', 'Initial commit'), stdout=PIPE)
+    output = subprocess.run("git commit-tree {}".format(tree_hash).split(),
+                            stdin=echo.stdout, stdout=PIPE, stderr=STDOUT)
+    echo.wait()
+    assert output.returncode is 0
+    msg = output.stdout.decode("ascii").strip()
+    commit_hash = msg
+    # print("\n{}\n".format(msg))
+    # 34236b10b84c6081389af1554c351c400bc079d9
+    """
+    git commit-tree <tree_hash>コマンドによってcommitオブジェクトが
+    ひとつ作られる。このコマンドは作られたcommitオブジェクトのhash値をstdoutに出力する。
+    
+    つぎに、新しく作られたcommitを現在のブランチ(master)のHEADとして登録しよう。
+    
+    まずrefs/heads/masterブランチを作ろう。そのなかに最新のcommitのhash値を記録する。
+    """
+    # with open(os.path.join(wt, '.git/refs/heads/master'), "w") as f:
+    #     f.write("{}\n".format(commit_hash))
+    output = subprocess.run("git update-ref refs/heads/master {}".format(commit_hash).split(),
+                            stdout=PIPE, stderr=STDOUT)
+    """
+    これ以降、新しいcommitを作ろうとするたび、かならず refs/heads/master に書かれた
+    最終のcommitのハッシュ値を親(parent) commitとして参照しよう。親commitのhash値を
+    パラメータとして渡しつつ新しいcommitを作ろう。
+    こうすることで新しいcommitオブジェクトから最終commitオブジェクトへのリンクが記録される。
+    時間が流れる向きを正とみれば、新しいcommitから最終commitへのリンクは逆向きである。
+    
+    これ以降、新しいcommitを作ったらかならず refs/heads/master に
+    新しいcommitのhash値を書き込むことにしよう。これが重要だ。
+    こうすることによってcommitからcommitへ連鎖する論理的なチェーンが形作られる。
+    """
+    """
+    シンボル HEAD をmasterブランチに関連付けておこう。こうすることによりHEADを始点として
+    最新のcommitから古いcommitへ連鎖をたどることができる。
+    """
+    output = subprocess.run("git symbolic-ref HEAD refs/heads/master".split(),
+                            stdout=PIPE, stderr=STDOUT)
+    """
+    git logでHEADから始まるcommitの連鎖を表示することができるようになった。
+    """
+    output = subprocess.run("git log".split(),
+                            stdout=PIPE, stderr=STDOUT)
+    msg = output.stdout.decode("ascii").strip()
+    print("\n{}\n".format(msg))
+    """commit db35a3b0b0cd84098ba64f11af2eae13c1087127
+Author: kazurayam <kazuaki.urayama@gmail.com>
+Date:   Thu May 20 11:26:20 2021 +0900
 
-
-
+    Initial commit
+    """
 
 
 
