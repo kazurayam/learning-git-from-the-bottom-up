@@ -7,33 +7,17 @@ g.attr(layout="dot", rankdir="RL")
 c = Digraph("cluster_0")
 c.attr(label="Commits", color="lightgrey")
 
-m = Digraph("m")
-m.attr(label="", color="white")
-m.node("0", "", shape="circle")
-m.node("A", "A", shape="circle")
-m.node("B", "B", shape="circle")
-m.node("C", "C", shape="circle")
-m.node("D", "D", shape="circle")
-#
-m.edge("A", "0", constraint="true")
-m.edge("B", "A", constraint="true")
-m.edge("C", "B", constraint="true")
-m.edge("D", "C", constraint="true")
-#
-c.subgraph(m)
-#
-d = Digraph("d")
-d.attr(label="", color="white")
-d.node("W", "W", shape="circle")
-d.node("X", "X", shape="circle")
-d.node("Y", "Y", shape="circle")
-d.node("Z", "Z", shape="circle")
-d.edge("W", "A", constraint="true")
-d.edge("X", "W", constraint="true")
-d.edge("Y", "X", constraint="true")
-d.edge("Z", "Y", constraint="true")
+with c.subgraph(name="m") as m:
+    m.attr(label="", color="white")
+    m.node_attr.update(shape="circle")
+    m.edge_attr.update(constraint="true", arrowhead="onormal")
+    m.edges([('D', 'C'), ('C', 'B'), ('B', 'A'), ('A', '0')])
 
-c.subgraph(d)
+with c.subgraph(name="d") as d:
+    d.attr(label="", color="white")
+    d.node_attr.update(shape="circle")
+    d.edge_attr.update(constraint="true", arrowhead="onormal")
+    d.edges([('Z', 'Y'), ('Y', 'X'), ('X', 'W'), ('W', 'A')])
 #
 b = Digraph("cluster_b")
 b.attr(color="white")
