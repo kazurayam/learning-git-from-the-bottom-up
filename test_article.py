@@ -25,6 +25,11 @@ def init_dir(path):
     os.makedirs(path)
 
 
+def write_greeting(wt, content):
+    with open(os.path.join(wt, 'greeting'), "w") as f:
+        f.write(content)
+
+
 def create_greeting(wt):
     with open(os.path.join(wt, 'greeting'), "w") as f:
         f.write("Hello, world!\n")
@@ -408,10 +413,78 @@ def test_the_beauty_of_commits(manage_dir):
     # HEAD is now at 9b189ef Added my greeting
 
 
-def test_a_commit_by_any_other_name():
+def test_a_commit_by_any_other_name(manage_dir):
     pass
 
 
+def test_branching_and_the_power_of_rebase(manage_dir):
+    wt = os.path.join(manage_dir, 'branching_and_the_power_of_rebase')
+    init_dir(wt)
+    os.chdir(wt)
+    create_greeting(wt)
+    add_greeting(wt)
+    commit_greeting()
+    #
+    write_greeting(wt, "Hello, world! a\n")
+    o = subprocess.run("git add greeting".split(), stdout=PIPE, stderr=STDOUT)
+    o = subprocess.run("git commit -m ".split() + ['A'], stdout=PIPE, stderr=STDOUT)
+    #
+    o = subprocess.run("git branch develop".split(), stdout=PIPE, stderr=STDOUT)
+    #
+    write_greeting(wt, "Hello, world! b\n")
+    o = subprocess.run("git add greeting".split(), stdout=PIPE, stderr=STDOUT)
+    o = subprocess.run("git commit -m ".split() + ['B'], stdout=PIPE, stderr=STDOUT)
+    #
+    write_greeting(wt, "Hello, world! c\n")
+    o = subprocess.run("git add greeting".split(), stdout=PIPE, stderr=STDOUT)
+    o = subprocess.run("git commit -m ".split() + ['C'], stdout=PIPE, stderr=STDOUT)
+    #
+    write_greeting(wt, "Hello, world! d\n")
+    o = subprocess.run("git add greeting".split(), stdout=PIPE, stderr=STDOUT)
+    o = subprocess.run("git commit -m ".split() + ['D'], stdout=PIPE, stderr=STDOUT)
+    #
+    o = subprocess.run("git checkout develop".split(), stdout=PIPE, stderr=STDOUT)
+    #
+    write_greeting(wt, "Hello, world! w\n")
+    o = subprocess.run("git add greeting".split(), stdout=PIPE, stderr=STDOUT)
+    o = subprocess.run("git commit -m ".split() + ['W'], stdout=PIPE, stderr=STDOUT)
+    #
+    write_greeting(wt, "Hello, world! x\n")
+    o = subprocess.run("git add greeting".split(), stdout=PIPE, stderr=STDOUT)
+    o = subprocess.run("git commit -m ".split() + ['X'], stdout=PIPE, stderr=STDOUT)
+    #
+    write_greeting(wt, "Hello, world! y\n")
+    o = subprocess.run("git add greeting".split(), stdout=PIPE, stderr=STDOUT)
+    o = subprocess.run("git commit -m ".split() + ['y'], stdout=PIPE, stderr=STDOUT)
+    #
+    write_greeting(wt, "Hello, world! z\n")
+    o = subprocess.run("git add greeting".split(), stdout=PIPE, stderr=STDOUT)
+    o = subprocess.run("git commit -m ".split() + ['Z'], stdout=PIPE, stderr=STDOUT)
+    #
+    o = subprocess.run("git checkout master".split(), stdout=PIPE, stderr=STDOUT)
+    output = subprocess.run("git branch".split(), stdout=PIPE, stderr=STDOUT)
+    msg = output.stdout.decode("ascii").strip()
+    print("\n{}\n".format(msg))
+    """
+  develop
+* master
+"""
+    output = subprocess.run("git show-branch".split(), stdout=PIPE, stderr=STDOUT)
+    msg = output.stdout.decode("ascii").strip()
+    print("\n{}\n".format(msg))
+    """
+! [develop] Z
+ * [master] D
+--
++  [develop] Z
++  [develop^] Y
++  [develop~2] X
++  [develop~3] W
+ * [master] D
+ * [master^] C
+ * [master~2] B
++* [develop~4] A
+"""
 
 """
 A commit by any other name…
