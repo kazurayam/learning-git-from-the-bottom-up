@@ -430,19 +430,6 @@ def test_branching_and_the_power_of_rebase(manage_dir):
     o = subprocess.run("git commit -m ".split() + ['A'], stdout=PIPE, stderr=STDOUT)
     #
     o = subprocess.run("git branch develop".split(), stdout=PIPE, stderr=STDOUT)
-    #
-    write_greeting(wt, "Hello, world! b\n")
-    o = subprocess.run("git add greeting".split(), stdout=PIPE, stderr=STDOUT)
-    o = subprocess.run("git commit -m ".split() + ['B'], stdout=PIPE, stderr=STDOUT)
-    #
-    write_greeting(wt, "Hello, world! c\n")
-    o = subprocess.run("git add greeting".split(), stdout=PIPE, stderr=STDOUT)
-    o = subprocess.run("git commit -m ".split() + ['C'], stdout=PIPE, stderr=STDOUT)
-    #
-    write_greeting(wt, "Hello, world! d\n")
-    o = subprocess.run("git add greeting".split(), stdout=PIPE, stderr=STDOUT)
-    o = subprocess.run("git commit -m ".split() + ['D'], stdout=PIPE, stderr=STDOUT)
-    #
     o = subprocess.run("git checkout develop".split(), stdout=PIPE, stderr=STDOUT)
     #
     write_greeting(wt, "Hello, world! w\n")
@@ -462,29 +449,43 @@ def test_branching_and_the_power_of_rebase(manage_dir):
     o = subprocess.run("git commit -m ".split() + ['Z'], stdout=PIPE, stderr=STDOUT)
     #
     o = subprocess.run("git checkout master".split(), stdout=PIPE, stderr=STDOUT)
+    #
+    write_greeting(wt, "Hello, world! b\n")
+    o = subprocess.run("git add greeting".split(), stdout=PIPE, stderr=STDOUT)
+    o = subprocess.run("git commit -m ".split() + ['B'], stdout=PIPE, stderr=STDOUT)
+    #
+    write_greeting(wt, "Hello, world! c\n")
+    o = subprocess.run("git add greeting".split(), stdout=PIPE, stderr=STDOUT)
+    o = subprocess.run("git commit -m ".split() + ['C'], stdout=PIPE, stderr=STDOUT)
+    #
+    write_greeting(wt, "Hello, world! d\n")
+    o = subprocess.run("git add greeting".split(), stdout=PIPE, stderr=STDOUT)
+    o = subprocess.run("git commit -m ".split() + ['D'], stdout=PIPE, stderr=STDOUT)
+    #
     output = subprocess.run("git branch".split(), stdout=PIPE, stderr=STDOUT)
     msg = output.stdout.decode("ascii").strip()
-    print("\n{}\n".format(msg))
-    """
-  develop
-* master
-"""
+    # print("\n{}\n".format(msg))
+    #   develop
+    # * master
     output = subprocess.run("git show-branch".split(), stdout=PIPE, stderr=STDOUT)
     msg = output.stdout.decode("ascii").strip()
-    print("\n{}\n".format(msg))
+    # print("\n{}\n".format(msg))
     """
 ! [develop] Z
  * [master] D
 --
-+  [develop] Z
-+  [develop^] Y
-+  [develop~2] X
-+  [develop~3] W
  * [master] D
  * [master^] C
  * [master~2] B
-+* [develop~4] A
++  [develop] Z
++  [develop^] y
++  [develop~2] X
++  [develop~3] W
++* [master~3] A
+
 """
+
+
 
 """
 A commit by any other name…
