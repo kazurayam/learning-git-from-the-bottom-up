@@ -468,6 +468,7 @@ def test_branching_and_the_power_of_rebase(manage_dir):
     #   develop
     # * master
     output = subprocess.run("git show-branch".split(), stdout=PIPE, stderr=STDOUT)
+    # `git show branch` shows branches and their commits
     msg = output.stdout.decode("ascii").strip()
     # print("\n{}\n".format(msg))
     """
@@ -482,8 +483,25 @@ def test_branching_and_the_power_of_rebase(manage_dir):
 +  [develop~2] X
 +  [develop~3] W
 +* [master~3] A
-
 """
+    """
+    git show-branchコマンドはbranchesのグラフを出力する。
+    ただしグラフをフラフィックスで表示するのではなく
+    すこし癖のある形式のテキストで表現する。
+    --の前と--の後で二分される。
+    --の前はブランチの一覧。
+    --の後はコミットの履歴。履歴は下から上へ順番に読むのがよい。
+    --の前において行頭の*はいま現在checkoutされているブランチであることを示す
+    --の前において行頭の!はいま現在checkoutされていないその他ブランチであることを示す
+    --の後において行頭の+の前にインデントがいくつあるかが重要で、
+      そのcommitがどのブランチに対して行われたのかをインデントが示す。
+    一番下の行がブランチングの様子を示す。master~3からdevelopブランチが
+      派生したとわかる。
+    """
+
+
+
+
 
 
 
