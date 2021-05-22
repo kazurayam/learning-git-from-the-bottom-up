@@ -499,6 +499,24 @@ def test_branching_and_the_power_of_rebase(manage_dir):
       派生したとわかる。
     """
 
+    """
+    B,C,Dでやった修正をZに取り込みたい。
+    そこでmasterブランチをdevelopブランチにmergeしよう。
+    """
+    o = subprocess.run("git checkout develop".split(), stdout=PIPE, stderr=STDOUT)
+    o = subprocess.run("git merge master".split(), stdout=PIPE, stderr=STDOUT)
+    msg = o.stdout.decode("ascii").strip()
+    # print("\n{}\n".format(msg))
+    """
+    きっとコンフリクトが発生する。
+    Auto-merging greeting
+    CONFLICT (content): Merge conflict in greeting
+    Automatic merge failed; fix conflicts and then commit the result.    
+    コミットDとZが同じgreetingファイルの同じ箇所の文字を
+    書きかえているので、コンフリクトが発生するのは当然。
+    """
+
+
 
 
 
