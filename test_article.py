@@ -11,7 +11,7 @@ from subprocess import PIPE, STDOUT
 
 
 @pytest.fixture(scope='module')
-def manage_dir():
+def basedir():
     project_dir = os.getcwd()
     base = os.path.join(project_dir, "tmp")
     init_dir(base)
@@ -51,16 +51,16 @@ def git_commit(wt, msg):
     # print("msg: {}".format(msg))
 
 
-def test_init_working_tree(manage_dir):
+def test_init_working_tree(basedir):
     # wt stands for Working Tree
-    wt = os.path.join(manage_dir, "init_working_tree")
+    wt = os.path.join(basedir, "init_working_tree")
     init_dir(wt)
     assert os.path.exists(wt)
     assert len(os.listdir(wt)) == 0
 
 
-def test_create_a_file(manage_dir):
-    wt = os.path.join(manage_dir, 'create_a_file')
+def test_create_a_file(basedir):
+    wt = os.path.join(basedir, 'create_a_file')
     init_dir(wt)
     os.chdir(wt)
     write_file(wt, 'greeting', 'Hello, world!\n')
@@ -68,8 +68,8 @@ def test_create_a_file(manage_dir):
     assert os.path.exists(greeting)
 
 
-def test_git_hashobject(manage_dir):
-    wt = os.path.join(manage_dir, 'git_hash_object')
+def test_git_hashobject(basedir):
+    wt = os.path.join(basedir, 'git_hash_object')
     init_dir(wt)
     os.chdir(wt)
     write_file(wt, 'greeting', 'Hello, world!\n')
@@ -80,8 +80,8 @@ def test_git_hashobject(manage_dir):
     assert len(hash_value) == 40
 
 
-def test_introducing_the_blob(manage_dir):
-    wt = os.path.join(manage_dir, 'git_init_add_commit')
+def test_introducing_the_blob(basedir):
+    wt = os.path.join(basedir, 'git_init_add_commit')
     init_dir(wt)
     os.chdir(wt)
     write_file(wt, 'greeting', 'Hello, world!\n')
@@ -98,8 +98,8 @@ def test_introducing_the_blob(manage_dir):
     assert 'Hello, world!' in msg
 
 
-def test_blobs_are_stored_in_trees(manage_dir):
-    wt = os.path.join(manage_dir, 'blobs_are_stored_in_trees')
+def test_blobs_are_stored_in_trees(basedir):
+    wt = os.path.join(basedir, 'blobs_are_stored_in_trees')
     init_dir(wt)
     os.chdir(wt)
     write_file(wt, 'greeting', 'Hello, world!\n')
@@ -254,13 +254,13 @@ Added my greeting
     """
 
 
-def test_how_trees_are_made(manage_dir):
+def test_how_trees_are_made(basedir):
     """
     blobを保持するtreeがどう作られるか、
     treeがその親となるcommitへどうリンクされるか、を見てみよう
     indexにgreetingファイルをaddすることからtreeは始まる
     """
-    wt = os.path.join(manage_dir, 'how_trees_are_made')
+    wt = os.path.join(basedir, 'how_trees_are_made')
     init_dir(wt)
     os.chdir(wt)
     write_file(wt, 'greeting', 'Hello, world!\n')
@@ -370,8 +370,8 @@ Date:   Thu May 20 11:26:20 2021 +0900
     """
 
 
-def test_the_beauty_of_commits(manage_dir):
-    wt = os.path.join(manage_dir, 'the_beauty_of_commits')
+def test_the_beauty_of_commits(basedir):
+    wt = os.path.join(basedir, 'the_beauty_of_commits')
     init_dir(wt)
     os.chdir(wt)
     write_file(wt, 'greeting', 'Hello, world!\n')
@@ -418,12 +418,12 @@ def test_the_beauty_of_commits(manage_dir):
     # HEAD is now at 9b189ef Added my greeting
 
 
-def test_a_commit_by_any_other_name(manage_dir):
+def test_a_commit_by_any_other_name(basedir):
     pass
 
 
-def test_branching_and_the_power_of_rebase(manage_dir):
-    wt = os.path.join(manage_dir, 'branching_and_the_power_of_rebase')
+def test_branching_and_the_power_of_rebase(basedir):
+    wt = os.path.join(basedir, 'branching_and_the_power_of_rebase')
     init_dir(wt)
     os.chdir(wt)
     write_file(wt, 'greeting', 'Hello, world!\n')
