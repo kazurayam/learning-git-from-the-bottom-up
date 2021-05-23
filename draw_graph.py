@@ -15,26 +15,39 @@ def draw_graph1():
     c.attr('graph', label="Commits", color="lightgrey")
     with c.subgraph(name="m") as m:
         m.attr(label="", color="white")
-        m.node_attr.update(shape="circle")
+        m.node_attr.update(shape="oval")
         m.edge_attr.update(constraint="true", arrowhead="onormal")
         m.node('0', label="")
-        m.edge('B', 'A', weight='2')  # to make the edge A <- B as straight as possible
-        m.edges([('D', 'C'), ('C', 'B'), ('A', '0')])
+        m.node('A', label="add A")
+        m.node('B', label="add B")
+        m.node('C', label="add C")
+        m.node('D', label="add D")
         m.node('E', shape="point", style="invis")
         m.node('F', shape="point", style="invis")
+        m.edge('A', '0')
+        m.edge('B', 'A', weight='2')  # to make the edge A <- B as straight as possible
+        m.edge('C', 'B')
+        m.edge('D', 'C')
         m.edge('E', 'D', dir="none", style="dotted")
 
     with c.subgraph(name="d") as d:
         d.attr(label="", color="white")
-        d.node_attr.update(shape="circle")
+        d.node_attr.update(shape="oval")
         d.edge_attr.update(constraint="true", arrowhead="onormal")
-        d.edges([('Z', 'Y'), ('Y', 'X'), ('X', 'W'), ('W', 'A')])
-    #
+        d.node('W', label="add W")
+        d.node('X', label="add X")
+        d.node('Y', label="add Y")
+        d.node('Z', label="add Z")
+        d.edge('W', 'A')
+        d.edge('X', 'W')
+        d.edge('Y', 'X')
+        d.edge('Z', 'Y')
+
     b = Digraph("cluster_b")
     b.attr(color="white")
-    b.node("MASTER", "branch: master", shape="larrow")
+    b.node("MASTER", "master", shape="larrow")
     b.edge("MASTER", "E:c", label="HEAD", dir="none", constraint="true", style="dotted")
-    b.node("DEVELOP", "branch: develop", shape="larrow")
+    b.node("DEVELOP", "develop", shape="larrow")
     b.edge("DEVELOP", "Z", label="HEAD", dir="none", constraint="true", style="dotted")
     #
     g.subgraph(c)
