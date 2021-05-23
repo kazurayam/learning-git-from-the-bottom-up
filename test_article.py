@@ -53,7 +53,7 @@ def git_commit(wt, msg, verbose=False):
 
 def print_git_msg(output):
     msg = output.stdout.decode("ascii").strip()
-    print("\n{}\n".format(msg))
+    print("{}".format(msg))
 
 
 def test_init_working_tree(basedir):
@@ -505,6 +505,29 @@ Merge made by the 'recursive' strategy.
 """
 
 
+def describe_commit(alias, annotation=None):
+    if annotation:
+        print('>' * 8 + ' ' + annotation)
+    #
+    cmd = "git rev-parse {}".format(alias)
+    print("$ " + cmd)
+    o = subprocess.run(cmd.split(), stdout=PIPE, stderr=STDOUT)
+    print_git_msg(o)
+    #
+    cmd = "git cat-file -t {}".format(alias)
+    print("$ " + cmd)
+    o = subprocess.run(cmd.split(), stdout=PIPE, stderr=STDOUT)
+    print_git_msg(o)
+    #
+    cmd = "git cat-file commit {}".format(alias)
+    print("$ " + cmd)
+    o = subprocess.run(cmd.split(), stdout=PIPE, stderr=STDOUT)
+    print_git_msg(o)
+    #
+    if annotation:
+        print('<' * 8 + ' ' + annotation)
+
+
 def test_branching_and_the_power_of_rebase_1(basedir):
     wt = os.path.join(basedir, 'branching_and_the_power_of_rebase_1')
     # 下準備としてコミットA,B,C,D,W,X,Y,Zを準備する
@@ -515,13 +538,17 @@ def test_branching_and_the_power_of_rebase_1(basedir):
     そこでdevelopブランチのHEADをmasterブランチのHEADにrebaseしよう
     """
     o = subprocess.run("git checkout develop".split(), stdout=PIPE, stderr=STDOUT)
+    # developブランチのHEAD~3コミットつまりWのコミットがrebaseする前にどういう内容だったかを表示しよう
+    describe_commit("HEAD~3", annotation="before rebase")
+
     o = subprocess.run("git rebase master".split(), stdout=PIPE, stderr=STDOUT)
     # print_git_msg(o)
     """
 Successfully rebased and updated refs/heads/develop
 """
+    # developブランチのHEAD~3コミットつまりWのコミットがrebaseした後にどういう内容に変わったかを表示しよう
+    describe_commit("HEAD~3", annotation="after rebase")
     o = subprocess.run("git show-branch".split(), stdout=PIPE, stderr=STDOUT)
-    print_git_msg(o)
     """
 * [develop] Added Z
  ! [master] Added D
