@@ -30,25 +30,30 @@ def write_file(wt, path, text):
         f.write(text)
 
 
-def git_init(wt):
+def git_init(wt, verbose=False):
     os.chdir(wt)
     output = subprocess.run('git init'.split(), stdout=PIPE, stderr=STDOUT)
-    msg = output.stdout.decode("ascii").strip()
-    # print("msg: {}".format(msg))
+    if verbose:
+        print_git_msg(output)
 
 
-def git_add(wt, path):
+def git_add(wt, path, verbose=False):
     os.chdir(wt)
     output = subprocess.run(['git', 'add', path], stdout=PIPE, stderr=STDOUT)
-    msg = output.stdout.decode("ascii").strip()
-    # print("msg: {}".format(msg))
+    if verbose:
+        print_git_msg(output)
 
 
-def git_commit(wt, msg):
+def git_commit(wt, msg, verbose=False):
     os.chdir(wt)
     output = subprocess.run(['git', 'commit', '-m', msg], stdout=PIPE, stderr=STDOUT)
+    if verbose:
+        print_git_msg(output)
+
+
+def print_git_msg(output):
     msg = output.stdout.decode("ascii").strip()
-    # print("msg: {}".format(msg))
+    print("\n{}\n".format(msg))
 
 
 def test_init_working_tree(basedir):
@@ -118,9 +123,9 @@ def test_blobs_are_stored_in_trees(basedir):
     みつかるはずだ。
     """
     output = subprocess.run('git ls-tree HEAD'.split(), stdout=PIPE, stderr=STDOUT)
-    msg = output.stdout.decode("ascii").strip()
-    # print("\n{}\n".format(msg))
+    # print_git_msg(output)
     # 100644 blob af5626b4a114abcb82d63db7c8082c3c4756e51b greeting
+    msg = output.stdout.decode('ascii').strip()
     """
     このコミットはgreetingをリポジトリに追加したことを記録している。
     このコミットはtreeをひとつ含み、そのtreeはleaf nodeをひとつ持っている。
@@ -138,26 +143,25 @@ def test_blobs_are_stored_in_trees(basedir):
     treeオブジェクトを見つけることができる。
     """
     output = subprocess.run('git rev-parse HEAD'.split(), stdout=PIPE, stderr=STDOUT)
-    msg = output.stdout.decode("ascii").strip()
-    # print("\n{}\n".format(msg))
+    # print_git_msg(output)
     # 9429e3ec347cc51565026b3adbecd37be4f92601
     # treeオブジェクトのhash値は一定ではない。
     # タイミングによりけりでさまざまなhash値になりうる。
     output = subprocess.run('git cat-file -t HEAD'.split(), stdout=PIPE, stderr=STDOUT)
-    msg = output.stdout.decode("ascii").strip()
-    # print("\n{}\n".format(msg))
-    # commit
+    # print_git_msg(output)
+    """commit"""
     """
     cat-fileコマンドに -t オプションを指定すると
     引数に指定されたオブジェクトの内容ではなくてオブジェクトのtypeが
     表示される。HEADは常にcommitオブジェクトだ。
     """
     output = subprocess.run('git cat-file commit HEAD'.split(), stdout=PIPE, stderr=STDOUT)
-    msg = output.stdout.decode("ascii").strip()
-    # print("\n{}\n".format(msg))
-    # tree 0563f77d884e4f79ce95117e2d686d7d6e282887
-    # author kazurayam <kazuaki.urayama@gmail.com> 1621389261 +0900
-    # committer kazurayam <kazuaki.urayama@gmail.com> 1621389261 +0900
+    # print_git_msg(output)
+    """
+tree 0563f77d884e4f79ce95117e2d686d7d6e282887
+author kazurayam <kazuaki.urayama@gmail.com> 1621389261 +0900
+committer kazurayam <kazuaki.urayama@gmail.com> 1621389261 +0900
+"""
     """
     git cat-file commit HEADは、HEADというエリアスが指している
     commitオブジェクトの内容を表示する。上記の例ではこのcommitには
@@ -179,8 +183,7 @@ def test_blobs_are_stored_in_trees(basedir):
     treeオブジェクトであることを確かめてみよう。
     """
     output = subprocess.run('git ls-tree 0563f77'.split(), stdout=PIPE, stderr=STDOUT)
-    msg = output.stdout.decode("ascii").strip()
-    # print("\n{}\n".format(msg))
+    # print_git_msg(output)
     # 100644 blob af5626b4a114abcb82d63db7c8082c3c4756e51b    greeting
     """
     わたしのリポジトリはこの時点でただひとつのcommitを含んでおり、
@@ -190,8 +193,7 @@ def test_blobs_are_stored_in_trees(basedir):
     """
 
     output = subprocess.run('find .git/objects -type f'.split(), stdout=PIPE, stderr=STDOUT)
-    msg = output.stdout.decode("ascii").strip()
-    # print("\n{}\n".format(msg))
+    # print_git_msg(output)
     # .git/objects/05/63f77d884e4f79ce95117e2d686d7d6e282887
     # .git/objects/54/9d175982bea318c6eba58ac5046f947f00eba8
     # .git/objects/af/5626b4a114abcb82d63db7c8082c3c4756e51b
@@ -201,8 +203,7 @@ def test_blobs_are_stored_in_trees(basedir):
     3つのオブジェクトがどういうtypeのオブジェクトであるか、確かめておこう。
     """
     output = subprocess.run('git cat-file -t 0563f77'.split(), stdout=PIPE, stderr=STDOUT)
-    msg = output.stdout.decode("ascii").strip()
-    # print("\n{}\n".format(msg))
+    # print_git_msg(output)
 
     # commitオブジェクトのhash値は一定でない。同じgreetingファイルをcommitしたのでも、コミットした時刻が
     # 違っていればいるからだ。だから下記のように549d175という固定文字を指定してcommitオブジェクトをcat-file
@@ -212,16 +213,14 @@ def test_blobs_are_stored_in_trees(basedir):
     # print("\n{}\n".format(msg))
     #
     output = subprocess.run('git cat-file -t af5626b'.split(), stdout=PIPE, stderr=STDOUT)
-    msg = output.stdout.decode("ascii").strip()
-    # print("\n{}\n".format(msg))
+    # print_git_msg(output)
 
     """
     git show HEADコマンドでHEADというエリアスが指すcommitオブジェクトの
     内容を調べられる。やってみよう。
     """
     output = subprocess.run('git show HEAD'.split(), stdout=PIPE, stderr=STDOUT)
-    msg = output.stdout.decode("ascii").strip()
-    # print("\n{}\n".format(msg))
+    # print_git_msg(output)
     '''commit ea920998ab1630d9d92a4be618a5fdcfd428f657
 Author: kazurayam <kazuaki.urayama@gmail.com>
 Date:   Wed May 19 18:16:30 2021 +0900
@@ -244,8 +243,7 @@ index 0000000..af5626b
     """
     commit_hash = output.stdout.decode("ascii").splitlines()[0].split(' ')[1]
     output = subprocess.run("git cat-file commit {}".format(commit_hash).split(), stdout=PIPE, stderr=STDOUT)
-    msg = output.stdout.decode("ascii").strip()
-    # print("\n{}\n".format(msg))
+    # print_git_msg(output)\
     """tree 0563f77d884e4f79ce95117e2d686d7d6e282887
 author kazurayam <kazuaki.urayama@gmail.com> 1621417997 +0900
 committer kazurayam <kazuaki.urayama@gmail.com> 1621417997 +0900
@@ -281,8 +279,8 @@ def test_how_trees_are_made(basedir):
     git addコマンドによりこのblobオブジェクトはindexに登録された状態(staged)になっている。
     """
     output = subprocess.run("git ls-files --stage".split(), stdout=PIPE, stderr=STDOUT)
+    # print_git_msg(output)
     msg = output.stdout.decode("ascii").strip()
-    # print("\n{}\n".format(msg))
     # 100644 af5626b4a114abcb82d63db7c8082c3c4756e51b 0       greeting
     assert "af5626b" in msg
     assert "greeting" in msg
@@ -305,11 +303,11 @@ def test_how_trees_are_made(basedir):
     このtreeオブジェクトの中身はどんな内容だろうか?
     """
     output = subprocess.run("git cat-file -p {}".format(tree_hash).split(), stdout=PIPE, stderr=STDOUT)
+    # 100644 blob af5626b4a114abcb82d63db7c8082c3c4756e51b    greeting
     msg = output.stdout.decode("ascii").strip()
     assert "af5626b" in msg
     assert "greeting" in msg
-    # print("\n{}\n".format(msg))
-    # 100644 blob af5626b4a114abcb82d63db7c8082c3c4756e51b    greeting
+    # print_git_msg(output)
     """
     みてのとおり、treeオブジェクトにはblobオブジェクトのhash値と
     元となったファイルのパスが書いてある
@@ -318,13 +316,12 @@ def test_how_trees_are_made(basedir):
     git commit-tree <tree_hash>コマンドで
     """
     echo = subprocess.Popen(('echo', 'Initial commit'), stdout=PIPE)
-    output = subprocess.run("git commit-tree {}".format(tree_hash).split(),
+    o = subprocess.run("git commit-tree {}".format(tree_hash).split(),
                             stdin=echo.stdout, stdout=PIPE, stderr=STDOUT)
     echo.wait()
     assert output.returncode is 0
-    msg = output.stdout.decode("ascii").strip()
-    commit_hash = msg
-    # print("\n{}\n".format(msg))
+    commit_hash = output.stdout.decode('ascii').strip()
+    # print_git_msg(o)
     # 34236b10b84c6081389af1554c351c400bc079d9
     """
     git commit-tree <tree_hash>コマンドによってcommitオブジェクトが
@@ -336,7 +333,7 @@ def test_how_trees_are_made(basedir):
     """
     # with open(os.path.join(wt, '.git/refs/heads/master'), "w") as f:
     #     f.write("{}\n".format(commit_hash))
-    output = subprocess.run("git update-ref refs/heads/master {}".format(commit_hash).split(),
+    o = subprocess.run("git update-ref refs/heads/master {}".format(commit_hash).split(),
                             stdout=PIPE, stderr=STDOUT)
     """
     これ以降、新しいcommitを作ろうとするたび、かならず refs/heads/master に書かれた
@@ -353,15 +350,14 @@ def test_how_trees_are_made(basedir):
     シンボル HEAD をmasterブランチに関連付けておこう。こうすることによりHEADを始点として
     最新のcommitから古いcommitへ連鎖をたどることができる。
     """
-    output = subprocess.run("git symbolic-ref HEAD refs/heads/master".split(),
+    o = subprocess.run("git symbolic-ref HEAD refs/heads/master".split(),
                             stdout=PIPE, stderr=STDOUT)
     """
     git logでHEADから始まるcommitの連鎖を表示することができるようになった。
     """
-    output = subprocess.run("git log".split(),
+    o = subprocess.run("git log".split(),
                             stdout=PIPE, stderr=STDOUT)
-    msg = output.stdout.decode("ascii").strip()
-    # print("\n{}\n".format(msg))
+    # print_git_msg(o)
     """commit db35a3b0b0cd84098ba64f11af2eae13c1087127
 Author: kazurayam <kazuaki.urayama@gmail.com>
 Date:   Thu May 20 11:26:20 2021 +0900
@@ -381,10 +377,10 @@ def test_the_beauty_of_commits(basedir):
     """
     masterブランチのHEADつまり最新のものとして参照されているコミットを調べよう
     """
-    output = subprocess.run("git branch -v".split(),
+    o = subprocess.run("git branch -v".split(),
                             stdout=PIPE, stderr=STDOUT)
-    msg = output.stdout.decode("ascii").strip()
-    #print("\n{}\n".format(msg))
+    # print_git_msg(o)
+    msg = o.stdout.decode('ascii').strip()
     """
     * master 444a7a7 Added my greeting
     """
@@ -398,10 +394,9 @@ def test_the_beauty_of_commits(basedir):
     ワーキングツリーをリセットすることができる。
     エリアスHEADはここで指定されたcommitオブジェクトを指すように変更される。
     """
-    output = subprocess.run("git reset --hard".split() + [commit_hash],
+    o = subprocess.run("git reset --hard".split() + [commit_hash],
                             stdout=PIPE, stderr=STDOUT)
-    msg = output.stdout.decode("ascii").strip()
-    # print("\n{}\n".format(msg))
+    # print_git_msg(o)
     # HEAD is now at 2c495c1 Added my greeting
     """
     git reset --hard commitId はワーキングツリーのなかに現在ある
@@ -411,10 +406,9 @@ def test_the_beauty_of_commits(basedir):
     git checkout だ。こちらはワーキングツリーの変更を消去しない。
     またHEADが指すcommitIDはgit checkoutによって変更されない。
     """
-    output = subprocess.run("git checkout".split() + [commit_hash],
+    o = subprocess.run("git checkout".split() + [commit_hash],
                             stdout=PIPE, stderr=STDOUT)
-    msg = output.stdout.decode("ascii").strip()
-    # print("\n{}\n".format(msg))
+    # print_git_msg(o)
     # HEAD is now at 9b189ef Added my greeting
 
 
@@ -422,73 +416,55 @@ def test_a_commit_by_any_other_name(basedir):
     pass
 
 
+def write_add_commit_file(wt, path, text, msg, verbose=False):
+    write_file(wt, path=path, text=text)
+    git_add(wt, path, verbose=verbose)
+    git_commit(wt, msg, verbose=verbose)
+
+
 def test_branching_and_the_power_of_rebase(basedir):
     wt = os.path.join(basedir, 'branching_and_the_power_of_rebase')
     init_dir(wt)
     os.chdir(wt)
-    write_file(wt, 'greeting', 'Hello, world!\n')
     git_init(wt)
-    git_add(wt, 'greeting')
-    git_commit(wt, 'Added greeting')
-    #
-    write_file(wt, path='greeting', text='Hello, a!\n')
-    o = subprocess.run("git add greeting".split(), stdout=PIPE, stderr=STDOUT)
-    o = subprocess.run("git commit -m ".split() + ['A'], stdout=PIPE, stderr=STDOUT)
+    write_add_commit_file(wt, path='greeting', text="Hello, world!\n", msg="Added greeting")
+    write_add_commit_file(wt, path='A', text="Hello, A!\n", msg="Added A")
     #
     o = subprocess.run("git branch develop".split(), stdout=PIPE, stderr=STDOUT)
     o = subprocess.run("git checkout develop".split(), stdout=PIPE, stderr=STDOUT)
     #
-    write_file(wt, path='greeting', text='Hello, w!\n')
-    o = subprocess.run("git add greeting".split(), stdout=PIPE, stderr=STDOUT)
-    o = subprocess.run("git commit -m ".split() + ['W'], stdout=PIPE, stderr=STDOUT)
-    #
-    write_file(wt, path='greeting', text='Hello, x!\n')
-    o = subprocess.run("git add greeting".split(), stdout=PIPE, stderr=STDOUT)
-    o = subprocess.run("git commit -m ".split() + ['X'], stdout=PIPE, stderr=STDOUT)
-    #
-    write_file(wt, path='greeting', text='Hello, y!\n')
-    o = subprocess.run("git add greeting".split(), stdout=PIPE, stderr=STDOUT)
-    o = subprocess.run("git commit -m ".split() + ['y'], stdout=PIPE, stderr=STDOUT)
-    #
-    write_file(wt, path='greeting', text='Hello, z!\n')
-    o = subprocess.run("git add greeting".split(), stdout=PIPE, stderr=STDOUT)
-    o = subprocess.run("git commit -m ".split() + ['Z'], stdout=PIPE, stderr=STDOUT)
+    write_add_commit_file(wt, path='W', text="Hello, W!\n", msg="Added W")
+    write_add_commit_file(wt, path='X', text="Hello, X!\n", msg="Added X")
+    write_add_commit_file(wt, path='Y', text="Hello, Y!\n", msg="Added Y")
+    write_add_commit_file(wt, path='Z', text="Hello, Z!\n", msg="Added Z")
     #
     o = subprocess.run("git checkout master".split(), stdout=PIPE, stderr=STDOUT)
     #
-    write_file(wt, path='greeting', text='Hello, b!\n')
-    o = subprocess.run("git add greeting".split(), stdout=PIPE, stderr=STDOUT)
-    o = subprocess.run("git commit -m ".split() + ['B'], stdout=PIPE, stderr=STDOUT)
+    write_add_commit_file(wt, path='B', text="Hello, B!\n", msg="Added B")
+    write_add_commit_file(wt, path='C', text="Hello, C!\n", msg="Added C")
+    write_add_commit_file(wt, path='D', text="Hello, D!\n", msg="Added D")
     #
-    write_file(wt, path='greeting', text='Hello, c!\n')
-    o = subprocess.run("git add greeting".split(), stdout=PIPE, stderr=STDOUT)
-    o = subprocess.run("git commit -m ".split() + ['C'], stdout=PIPE, stderr=STDOUT)
-    #
-    write_file(wt, path='greeting', text='Hello, d!\n')
-    o = subprocess.run("git add greeting".split(), stdout=PIPE, stderr=STDOUT)
-    o = subprocess.run("git commit -m ".split() + ['D'], stdout=PIPE, stderr=STDOUT)
-    #
-    output = subprocess.run("git branch".split(), stdout=PIPE, stderr=STDOUT)
-    msg = output.stdout.decode("ascii").strip()
-    # print("\n{}\n".format(msg))
-    #   develop
-    # * master
-    output = subprocess.run("git show-branch".split(), stdout=PIPE, stderr=STDOUT)
-    # `git show branch` shows branches and their commits
-    msg = output.stdout.decode("ascii").strip()
-    # print("\n{}\n".format(msg))
+    o = subprocess.run("git branch".split(), stdout=PIPE, stderr=STDOUT)
+    # print_git_msg(o)
     """
-! [develop] Z
- * [master] D
+  develop
+* master    
+"""
+    # `git show branch` shows branches and their commits
+    o = subprocess.run("git show-branch".split(), stdout=PIPE, stderr=STDOUT)
+    # print_git_msg(o)
+    """
+! [develop] Added Z
+ * [master] Added D
 --
- * [master] D
- * [master^] C
- * [master~2] B
-+  [develop] Z
-+  [develop^] y
-+  [develop~2] X
-+  [develop~3] W
-+* [master~3] A
+ * [master] Added D
+ * [master^] Added C
+ * [master~2] Added B
++  [develop] Added Z
++  [develop^] Added y
++  [develop~2] Added X
++  [develop~3] Added W
++* [master~3] Added A
 """
     """
     git show-branchコマンドはbranchesのグラフを出力する。
@@ -510,9 +486,10 @@ def test_branching_and_the_power_of_rebase(basedir):
     そこでmasterブランチをdevelopブランチにmergeしよう。
     """
     o = subprocess.run("git checkout develop".split(), stdout=PIPE, stderr=STDOUT)
+    o = subprocess.run("git show-branch".split(), stdout=PIPE, stderr=STDOUT)
+    print_git_msg(o)
     o = subprocess.run("git merge master".split(), stdout=PIPE, stderr=STDOUT)
-    msg = o.stdout.decode("ascii").strip()
-    # print("\n{}\n".format(msg))
+    print_git_msg(o)
     """
     きっとコンフリクトが発生する。
     Auto-merging greeting
