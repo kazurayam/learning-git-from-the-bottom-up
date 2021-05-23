@@ -25,27 +25,28 @@ def init_dir(path):
     os.makedirs(path)
 
 
-def write_greeting(wt, content):
-    with open(os.path.join(wt, 'greeting'), "w") as f:
-        f.write(content)
+def write_file(wt, path, text):
+    with open(os.path.join(wt, path), 'w') as f:
+        f.write(text)
 
 
-def create_greeting(wt):
-    with open(os.path.join(wt, 'greeting'), "w") as f:
-        f.write("Hello, world!\n")
-
-
-def add_greeting(wt):
+def git_init(wt):
+    os.chdir(wt)
     output = subprocess.run('git init'.split(), stdout=PIPE, stderr=STDOUT)
     msg = output.stdout.decode("ascii").strip()
     # print("msg: {}".format(msg))
-    output = subprocess.run('git add greeting'.split(), stdout=PIPE, stderr=STDOUT)
+
+
+def git_add(wt, path):
+    os.chdir(wt)
+    output = subprocess.run(['git', 'add', path], stdout=PIPE, stderr=STDOUT)
     msg = output.stdout.decode("ascii").strip()
     # print("msg: {}".format(msg))
 
 
-def commit_greeting():
-    output = subprocess.run('git commit -m'.split() + ["Added my greeting"], stdout=PIPE, stderr=STDOUT)
+def git_commit(wt, msg):
+    os.chdir(wt)
+    output = subprocess.run(['git', 'commit', '-m', msg], stdout=PIPE, stderr=STDOUT)
     msg = output.stdout.decode("ascii").strip()
     # print("msg: {}".format(msg))
 
@@ -62,7 +63,7 @@ def test_create_a_file(manage_dir):
     wt = os.path.join(manage_dir, 'create_a_file')
     init_dir(wt)
     os.chdir(wt)
-    create_greeting(wt)
+    write_file(wt, 'greeting', 'Hello, world!\n')
     greeting = os.path.join(wt, 'greeting')
     assert os.path.exists(greeting)
 
@@ -71,7 +72,7 @@ def test_git_hashobject(manage_dir):
     wt = os.path.join(manage_dir, 'git_hash_object')
     init_dir(wt)
     os.chdir(wt)
-    create_greeting(wt)
+    write_file(wt, 'greeting', 'Hello, world!\n')
     output = subprocess.run('git hash-object greeting'.split(), stdout=PIPE, stderr=STDOUT)
     hash_value = output.stdout.decode("ascii").strip()
     # print("(", hash_value, ")")
@@ -83,9 +84,10 @@ def test_introducing_the_blob(manage_dir):
     wt = os.path.join(manage_dir, 'git_init_add_commit')
     init_dir(wt)
     os.chdir(wt)
-    create_greeting(wt)
-    add_greeting(wt)
-    commit_greeting()
+    write_file(wt, 'greeting', 'Hello, world!\n')
+    git_init(wt)
+    git_add(wt, 'greeting')
+    git_commit(wt, 'Added greeting')
     #
     output = subprocess.run('git cat-file -t af5626b'.split(), stdout=PIPE, stderr=STDOUT)
     msg = output.stdout.decode("ascii").strip()
@@ -100,9 +102,10 @@ def test_blobs_are_stored_in_trees(manage_dir):
     wt = os.path.join(manage_dir, 'blobs_are_stored_in_trees')
     init_dir(wt)
     os.chdir(wt)
-    create_greeting(wt)
-    add_greeting(wt)
-    commit_greeting()
+    write_file(wt, 'greeting', 'Hello, world!\n')
+    git_init(wt)
+    git_add(wt, 'greeting')
+    git_commit(wt, 'Added greeting')
     #
     """
     Gitはファイルの構造と名前を表現するために、blobをtreeへ
@@ -260,8 +263,9 @@ def test_how_trees_are_made(manage_dir):
     wt = os.path.join(manage_dir, 'how_trees_are_made')
     init_dir(wt)
     os.chdir(wt)
-    create_greeting(wt)
-    add_greeting(wt)
+    write_file(wt, 'greeting', 'Hello, world!\n')
+    git_init(wt)
+    git_add(wt, 'greeting')
     """
     まだコミットがひとつも無い時点でgit logすると失敗する
     """
@@ -370,9 +374,10 @@ def test_the_beauty_of_commits(manage_dir):
     wt = os.path.join(manage_dir, 'the_beauty_of_commits')
     init_dir(wt)
     os.chdir(wt)
-    create_greeting(wt)
-    add_greeting(wt)
-    commit_greeting()
+    write_file(wt, 'greeting', 'Hello, world!\n')
+    git_init(wt)
+    git_add(wt, 'greeting')
+    git_commit(wt, 'Added greeting')
     """
     masterブランチのHEADつまり最新のものとして参照されているコミットを調べよう
     """
@@ -421,44 +426,45 @@ def test_branching_and_the_power_of_rebase(manage_dir):
     wt = os.path.join(manage_dir, 'branching_and_the_power_of_rebase')
     init_dir(wt)
     os.chdir(wt)
-    create_greeting(wt)
-    add_greeting(wt)
-    commit_greeting()
+    write_file(wt, 'greeting', 'Hello, world!\n')
+    git_init(wt)
+    git_add(wt, 'greeting')
+    git_commit(wt, 'Added greeting')
     #
-    write_greeting(wt, "Hello, world! a\n")
+    write_file(wt, path='greeting', text='Hello, a!\n')
     o = subprocess.run("git add greeting".split(), stdout=PIPE, stderr=STDOUT)
     o = subprocess.run("git commit -m ".split() + ['A'], stdout=PIPE, stderr=STDOUT)
     #
     o = subprocess.run("git branch develop".split(), stdout=PIPE, stderr=STDOUT)
     o = subprocess.run("git checkout develop".split(), stdout=PIPE, stderr=STDOUT)
     #
-    write_greeting(wt, "Hello, world! w\n")
+    write_file(wt, path='greeting', text='Hello, w!\n')
     o = subprocess.run("git add greeting".split(), stdout=PIPE, stderr=STDOUT)
     o = subprocess.run("git commit -m ".split() + ['W'], stdout=PIPE, stderr=STDOUT)
     #
-    write_greeting(wt, "Hello, world! x\n")
+    write_file(wt, path='greeting', text='Hello, x!\n')
     o = subprocess.run("git add greeting".split(), stdout=PIPE, stderr=STDOUT)
     o = subprocess.run("git commit -m ".split() + ['X'], stdout=PIPE, stderr=STDOUT)
     #
-    write_greeting(wt, "Hello, world! y\n")
+    write_file(wt, path='greeting', text='Hello, y!\n')
     o = subprocess.run("git add greeting".split(), stdout=PIPE, stderr=STDOUT)
     o = subprocess.run("git commit -m ".split() + ['y'], stdout=PIPE, stderr=STDOUT)
     #
-    write_greeting(wt, "Hello, world! z\n")
+    write_file(wt, path='greeting', text='Hello, z!\n')
     o = subprocess.run("git add greeting".split(), stdout=PIPE, stderr=STDOUT)
     o = subprocess.run("git commit -m ".split() + ['Z'], stdout=PIPE, stderr=STDOUT)
     #
     o = subprocess.run("git checkout master".split(), stdout=PIPE, stderr=STDOUT)
     #
-    write_greeting(wt, "Hello, world! b\n")
+    write_file(wt, path='greeting', text='Hello, b!\n')
     o = subprocess.run("git add greeting".split(), stdout=PIPE, stderr=STDOUT)
     o = subprocess.run("git commit -m ".split() + ['B'], stdout=PIPE, stderr=STDOUT)
     #
-    write_greeting(wt, "Hello, world! c\n")
+    write_file(wt, path='greeting', text='Hello, c!\n')
     o = subprocess.run("git add greeting".split(), stdout=PIPE, stderr=STDOUT)
     o = subprocess.run("git commit -m ".split() + ['C'], stdout=PIPE, stderr=STDOUT)
     #
-    write_greeting(wt, "Hello, world! d\n")
+    write_file(wt, path='greeting', text='Hello, d!\n')
     o = subprocess.run("git add greeting".split(), stdout=PIPE, stderr=STDOUT)
     o = subprocess.run("git commit -m ".split() + ['D'], stdout=PIPE, stderr=STDOUT)
     #
