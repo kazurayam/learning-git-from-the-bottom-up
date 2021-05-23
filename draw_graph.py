@@ -5,8 +5,8 @@ from graphviz import Digraph
 def draw_graph1():
     """
     ブランチングとrebaseの力 図その1
-    0 <- A <- B <- C <- D
-           <- W <- X <- Y <- Z
+    0 <- A <- B <- C <- D ======== master
+           <- W <- X <- Y <- Z === develop
     """
     g = Digraph("main", comment="Branching and the power of rebase / graph1")
     g.attr('graph', layout="dot", rankdir="RL")
@@ -58,8 +58,8 @@ def draw_graph1():
 def draw_graph2():
     """
     ブランチングとrebaseの力 図その1
-    0 <- A <- B <- C <- D
-           <- W <- X <- Y <- Z <- Z'
+    0 <- A <- B <- C <- D ============== master
+           <- W <- X <- Y <- Z <- Z' === develop
     """
     g = Digraph("main", comment="Branching and the power of rebase / graph2")
     g.attr('graph', layout="dot", rankdir="RL")
@@ -117,8 +117,8 @@ def draw_graph2():
 def draw_graph3():
     """
     ブランチングとrebaseの力
-    0 <- A <- B <- C <- D
-                           <- W <- X <- Y <- Z
+    0 <- A <- B <- C <- D ======================== master
+                           <- W <- X <- Y <- Z === develop
     """
     g = Digraph("main", comment="Branching and the power of rebase / graph3")
     g.attr('graph', layout="dot", rankdir="RL")
