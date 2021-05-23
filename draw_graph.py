@@ -92,13 +92,13 @@ def draw_graph2():
         d.node('X', label="X")
         d.node('Y', label="Y")
         d.node('Z', label="Z")
-        d.node("Z'", label="merge\nmaster")
+        d.node("M", shape="doublecircle", label="merge")
         d.edge('W', 'A')
         d.edge('X', 'W')
         d.edge('Y', 'X')
         d.edge('Z', 'Y')
-        d.edge("Z'", 'Z')
-        d.edge("Z'", 'D')
+        d.edge("M", 'Z')
+        d.edge("M", 'D')
 
     #
     b = Digraph("cluster_b")
@@ -106,7 +106,8 @@ def draw_graph2():
     b.node("MASTER", "master", shape="larrow")
     b.edge("MASTER", "F", label="HEAD", dir="none", constraint="true", style="dotted")
     b.node("DEVELOP", "develop", shape="larrow")
-    b.edge("DEVELOP", "Z'", label="HEAD", dir="none", constraint="true", style="dotted")
+    b.edge("DEVELOP", "W", label="HEAD~3", dir="none", constraint="true", style="dotted")
+    b.edge("DEVELOP", "M", label="HEAD", dir="none", constraint="true", style="dotted")
     #
     g.subgraph(c)
     g.subgraph(b)
@@ -146,6 +147,7 @@ def draw_graph3():
         m.edge('F', 'E', dir="none", style="dotted", weight="2")
         m.edge('G', 'F', dir="none", style="dotted", weight="2")
         m.edge('H', 'G', dir="none", style="dotted", weight="2")
+
     with c.subgraph(name="d") as d:
         d.attr(label="", color="white", ranksep="0.2")
         d.node_attr.update(shape="circle")
@@ -159,12 +161,13 @@ def draw_graph3():
         d.edge('Y', 'X')
         d.edge('Z', 'Y')
 
-    #
+#
     b = Digraph("cluster_b")
     b.attr(color="white")
     b.node("MASTER", "master", shape="larrow")
     b.edge("MASTER", "H", label="HEAD", dir="none", constraint="true", style="dotted", weight="2")
     b.node("DEVELOP", "develop", shape="larrow")
+    b.edge("DEVELOP", "W", label="HEAD~3", dir="none", constraint="true", style="dotted")
     b.edge("DEVELOP", "Z", label="HEAD", dir="none", constraint="true", style="dotted")
     #
     g.subgraph(c)

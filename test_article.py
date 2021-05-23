@@ -540,7 +540,7 @@ def test_branching_and_the_power_of_rebase_1(basedir):
     o = subprocess.run("git checkout develop".split(), stdout=PIPE, stderr=STDOUT)
     # developブランチのHEAD~3コミットつまりWのコミットがrebaseする前にどういう内容だったかを表示しよう
     describe_commit("HEAD~3", annotation="before rebase")
-
+    # さあ WをAからDにrebaseしよう
     o = subprocess.run("git rebase master".split(), stdout=PIPE, stderr=STDOUT)
     # print_git_msg(o)
     """
