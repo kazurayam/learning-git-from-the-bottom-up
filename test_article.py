@@ -302,7 +302,8 @@ def test_how_trees_are_made(basedir):
     """
     このtreeオブジェクトの中身はどんな内容だろうか?
     """
-    output = subprocess.run("git cat-file -p {}".format(tree_hash).split(), stdout=PIPE, stderr=STDOUT)
+    output = subprocess.run(['git', 'cat-file', '-p', tree_hash],
+                            stdout=PIPE, stderr=STDOUT)
     # 100644 blob af5626b4a114abcb82d63db7c8082c3c4756e51b    greeting
     msg = output.stdout.decode("ascii").strip()
     assert "af5626b" in msg
@@ -316,8 +317,8 @@ def test_how_trees_are_made(basedir):
     git commit-tree <tree_hash>コマンドで
     """
     echo = subprocess.Popen(('echo', 'Initial commit'), stdout=PIPE)
-    o = subprocess.run("git commit-tree {}".format(tree_hash).split(),
-                            stdin=echo.stdout, stdout=PIPE, stderr=STDOUT)
+    o = subprocess.run(['git', 'commit-tree', tree_hash],
+                       stdin=echo.stdout, stdout=PIPE, stderr=STDOUT)
     echo.wait()
     assert output.returncode is 0
     commit_hash = output.stdout.decode('ascii').strip()
@@ -333,8 +334,8 @@ def test_how_trees_are_made(basedir):
     """
     # with open(os.path.join(wt, '.git/refs/heads/master'), "w") as f:
     #     f.write("{}\n".format(commit_hash))
-    o = subprocess.run("git update-ref refs/heads/master {}".format(commit_hash).split(),
-                            stdout=PIPE, stderr=STDOUT)
+    o = subprocess.run(['git', 'update-ref', 'refs/heads/master', commit_hash],
+                       stdout=PIPE, stderr=STDOUT)
     """
     これ以降、新しいcommitを作ろうとするたび、かならず refs/heads/master に書かれた
     最終のcommitのハッシュ値を親(parent) commitとして参照しよう。親commitのhash値を
@@ -355,8 +356,7 @@ def test_how_trees_are_made(basedir):
     """
     git logでHEADから始まるcommitの連鎖を表示することができるようになった。
     """
-    o = subprocess.run("git log".split(),
-                            stdout=PIPE, stderr=STDOUT)
+    o = subprocess.run("git log".split(), stdout=PIPE, stderr=STDOUT)
     # print_git_msg(o)
     """commit db35a3b0b0cd84098ba64f11af2eae13c1087127
 Author: kazurayam <kazuaki.urayama@gmail.com>
@@ -377,8 +377,7 @@ def test_the_beauty_of_commits(basedir):
     """
     masterブランチのHEADつまり最新のものとして参照されているコミットを調べよう
     """
-    o = subprocess.run("git branch -v".split(),
-                            stdout=PIPE, stderr=STDOUT)
+    o = subprocess.run("git branch -v".split(), stdout=PIPE, stderr=STDOUT)
     # print_git_msg(o)
     msg = o.stdout.decode('ascii').strip()
     """
@@ -422,8 +421,7 @@ def write_add_commit_file(wt, path, text, msg, verbose=False):
     git_commit(wt, msg, verbose=verbose)
 
 
-def test_branching_and_the_power_of_rebase(basedir):
-    wt = os.path.join(basedir, 'branching_and_the_power_of_rebase')
+def setup_abcdwxyz(wt):
     init_dir(wt)
     os.chdir(wt)
     git_init(wt)
@@ -481,24 +479,59 @@ def test_branching_and_the_power_of_rebase(basedir):
       派生したとわかる。
     """
 
+
+def test_branching_and_the_power_of_rebase_0(basedir):
+    wt = os.path.join(basedir, 'branching_and_the_power_of_rebase_0')
+    # 下準備としてコミットA,B,C,D,W,X,Y,Zを準備する
+    setup_abcdwxyz(wt)
+
     """
-    B,C,Dでやった修正をZに取り込みたい。
+    masterブランチでやったコミット(B,C,D)をdevelopブランチに取り込みたい。
     そこでmasterブランチをdevelopブランチにmergeしよう。
     """
     o = subprocess.run("git checkout develop".split(), stdout=PIPE, stderr=STDOUT)
+    o = subprocess.run("git merge master -m ".split() + ["merged B,C,D"],
+                       stdout=PIPE, stderr=STDOUT)
+    # print_git_msg(o)
+    """
+Merge made by the 'recursive' strategy.
+ B | 1 +
+ C | 1 +
+ D | 1 +
+ 3 files changed, 3 insertions(+)
+ create mode 100644 B
+ create mode 100644 C
+ create mode 100644 D
+"""
+
+
+def test_branching_and_the_power_of_rebase_1(basedir):
+    wt = os.path.join(basedir, 'branching_and_the_power_of_rebase_1')
+    # 下準備としてコミットA,B,C,D,W,X,Y,Zを準備する
+    setup_abcdwxyz(wt)
+
+    """
+    masterブランチでやったコミット(B,C,D)をdevelopブランチに取り込みたい。
+    そこでdevelopブランチのHEADをmasterブランチのHEADにrebaseしよう
+    """
+    o = subprocess.run("git checkout develop".split(), stdout=PIPE, stderr=STDOUT)
+    o = subprocess.run("git rebase master".split(), stdout=PIPE, stderr=STDOUT)
+    # print_git_msg(o)
+    """
+Successfully rebased and updated refs/heads/develop
+"""
     o = subprocess.run("git show-branch".split(), stdout=PIPE, stderr=STDOUT)
     print_git_msg(o)
-    o = subprocess.run("git merge master".split(), stdout=PIPE, stderr=STDOUT)
-    print_git_msg(o)
     """
-    きっとコンフリクトが発生する。
-    Auto-merging greeting
-    CONFLICT (content): Merge conflict in greeting
-    Automatic merge failed; fix conflicts and then commit the result.    
-    コミットDとZが同じgreetingファイルの同じ箇所の文字を
-    書きかえているので、コンフリクトが発生するのは当然。
-    """
-
+* [develop] Added Z
+ ! [master] Added D
+--
+*  [develop] Added Z
+*  [develop^] Added Y
+*  [develop~2] Added X
+*  [develop~3] Added W
+*+ [master] Added D
+"""
 
 
 
