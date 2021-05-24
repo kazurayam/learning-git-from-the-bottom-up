@@ -480,31 +480,6 @@ def setup_abcdwxyz(wt):
     """
 
 
-def test_branching_and_the_power_of_rebase_0(basedir):
-    wt = os.path.join(basedir, 'branching_and_the_power_of_rebase_0')
-    # 下準備としてコミットA,B,C,D,W,X,Y,Zを準備する
-    setup_abcdwxyz(wt)
-
-    """
-    masterブランチでやったコミット(B,C,D)をdevelopブランチに取り込みたい。
-    そこでmasterブランチをdevelopブランチにmergeしよう。
-    """
-    o = subprocess.run("git checkout develop".split(), stdout=PIPE, stderr=STDOUT)
-    o = subprocess.run("git merge master -m ".split() + ["merged B,C,D"],
-                       stdout=PIPE, stderr=STDOUT)
-    # print_git_msg(o)
-    """
-Merge made by the 'recursive' strategy.
- B | 1 +
- C | 1 +
- D | 1 +
- 3 files changed, 3 insertions(+)
- create mode 100644 B
- create mode 100644 C
- create mode 100644 D
-"""
-
-
 def describe_commit(alias, annotation=None):
     if annotation:
         print('>' * 8 + ' ' + annotation)
@@ -535,11 +510,71 @@ def test_branching_and_the_power_of_rebase_1(basedir):
 
     """
     masterブランチでやったコミット(B,C,D)をdevelopブランチに取り込みたい。
+    そこでmasterブランチをdevelopブランチにmergeしよう。
+    """
+    o = subprocess.run("git checkout develop".split(), stdout=PIPE, stderr=STDOUT)
+    #describe_commit("HEAD", "before merge")
+    o = subprocess.run("git merge master -m ".split() + ["merged B,C,D"],
+                       stdout=PIPE, stderr=STDOUT)
+    # print_git_msg(o)
+    """
+Merge made by the 'recursive' strategy.
+ B | 1 +
+ C | 1 +
+ D | 1 +
+ 3 files changed, 3 insertions(+)
+ create mode 100644 B
+ create mode 100644 C
+ create mode 100644 D
+"""
+    #describe_commit("HEAD", "after merge")
+    # developブランチのHEADが指すcommitオブジェクトがmergeする前と後とでどう変化したかをみてみよう。
+    """
+>>>>>>>> before merge
+$ git rev-parse HEAD
+0c179789ca606debc1f00321a7392688de3dc0f2
+$ git cat-file -t HEAD
+commit
+$ git cat-file commit HEAD
+tree 55c3762100016e91d0b061e7342df0a845f5da9d
+parent 0b67fdccf8013e2270f3c15679c29ad016d0f125
+author kazurayam <kazuaki.urayama@gmail.com> 1621771033 +0900
+committer kazurayam <kazuaki.urayama@gmail.com> 1621771033 +0900
+
+Added Z
+<<<<<<<< before merge
+>>>>>>>> after merge
+$ git rev-parse HEAD
+be0cd86ee8329cf618e6ace91a252ba7241a8268
+$ git cat-file -t HEAD
+commit
+$ git cat-file commit HEAD
+tree 1722ba1cf2e29207beffdde5ebb975c0f26667bb
+parent 0c179789ca606debc1f00321a7392688de3dc0f2
+parent 3bc7f3355309eee2b625911d56f93dc3cb2b745c
+author kazurayam <kazuaki.urayama@gmail.com> 1621771035 +0900
+committer kazurayam <kazuaki.urayama@gmail.com> 1621771035 +0900
+
+merged B,C,D
+<<<<<<<< after merge
+"""
+    # mergeの前にHEADが指していたcommitオブジェクトとmergeの後にHEADが指すオブジェクトとは別物だ。
+    # mergeによって新しいcommitオブジェクトが作られた。mergeによって作られたcommitオブジェクトの
+    # なかをよく見よ。parentが2つあることに注意。これが merge commit であることの証拠だ。
+
+
+def test_branching_and_the_power_of_rebase_2(basedir):
+    wt = os.path.join(basedir, 'branching_and_the_power_of_rebase_2')
+    # 下準備としてコミットA,B,C,D,W,X,Y,Zを準備する
+    setup_abcdwxyz(wt)
+
+    """
+    masterブランチでやったコミット(B,C,D)をdevelopブランチに取り込みたい。
     そこでdevelopブランチのHEADをmasterブランチのHEADにrebaseしよう
     """
     o = subprocess.run("git checkout develop".split(), stdout=PIPE, stderr=STDOUT)
     # developブランチのHEAD~3コミットつまりWのコミットがrebaseする前にどういう内容だったかを表示しよう
-    describe_commit("HEAD~3", annotation="before rebase")
+    #describe_commit("HEAD~3", annotation="before rebase")
     # さあ WをAからDにrebaseしよう
     o = subprocess.run("git rebase master".split(), stdout=PIPE, stderr=STDOUT)
     # print_git_msg(o)
@@ -547,7 +582,7 @@ def test_branching_and_the_power_of_rebase_1(basedir):
 Successfully rebased and updated refs/heads/develop
 """
     # developブランチのHEAD~3コミットつまりWのコミットがrebaseした後にどういう内容に変わったかを表示しよう
-    describe_commit("HEAD~3", annotation="after rebase")
+    #describe_commit("HEAD~3", annotation="after rebase")
     o = subprocess.run("git show-branch".split(), stdout=PIPE, stderr=STDOUT)
     """
 * [develop] Added Z
@@ -561,13 +596,13 @@ Successfully rebased and updated refs/heads/develop
 """
 
 
-
+def test_interactive_rebasing():
+    pass
 
 
 
 
 """
-A commit by any other name…
 Branching and the power of rebase
 Index Cache: Meet the middle man
 Taking the index cache farther
