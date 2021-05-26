@@ -4,6 +4,7 @@ http://keijinsonyaban.blogspot.com/2011/05/git.html#ct3
 
 import os
 import re
+import pathlib
 import pytest
 import shutil
 import subprocess
@@ -26,6 +27,8 @@ def init_dir(path):
 
 
 def write_file(wt, path, text):
+    f = pathlib.Path(os.path.join(wt, path))
+    os.makedirs(f.parent, exist_ok=True)
     with open(os.path.join(wt, path), 'w') as f:
         f.write(text)
 
@@ -364,6 +367,32 @@ Date:   Thu May 20 11:26:20 2021 +0900
 
     Initial commit
     """
+
+
+def test_what_if_dirs_and_files_were_added(basedir):
+    """
+    """
+    wt = os.path.join(basedir, 'test_what_if_dirs_and_files_were_added')
+    init_dir(wt)
+    os.chdir(wt)
+    git_init(wt)
+    write_file(wt, 'README.md', '# README please\n')
+    write_file(wt, 'src/greeting', 'Hello, world!\n')
+    git_add(wt, '.')
+    write_file(wt, '.gitignore', '*~\n')
+    write_file(wt, 'src/hello.pl', 'print(\"hello\")\n')
+    git_add(wt, '.')
+    # `git ls-files --stage`コマンドを実行すると、stageにファイルが4つ登録されていることがわかる
+    o = subprocess.run("git ls-files --stage".split(), stdout=PIPE, stderr=STDOUT)
+    print_git_msg(o)
+    # `git ls-files --debug`コマンドを実行すると、stageに登録済みのファイルの詳細がわかる
+    o = subprocess.run("git ls-files --debug".split(), stdout=PIPE, stderr=STDOUT)
+    print_git_msg(o)
+    #
+    git_commit(wt, "initial commit")
+    #
+    o = subprocess.run("git cat-file -p master^{tree}".split(), stdout=PIPE, stderr=STDOUT)
+    print_git_msg(o)
 
 
 def test_the_beauty_of_commits(basedir):
