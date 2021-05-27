@@ -123,21 +123,20 @@ Changes to be committed:
         renamed:    src/hello.pl -> source/hello.pl
 """
     # indexをcat-fileしたなかにsource/greetingのblobとsource/hello.plのblobが
-    # 含まれているのは当然だとおもう。だってgit statusにそう表示されるくらいなのだから。
+    # 含まれているのは当然だ。だってgit statusにそう表示されるくらいなのだから。
     # ところがindexをよくみると、今回変更しなかった .gitignore と README.md のblob
     # も含まれている。僕は驚いた。
-    # git statusコマンドはindexに単純にprintしているのではなかった。
+    # git statusコマンドはindexに単純にprintするコマンドではなかった。
     #
     # ひとつのindexのなかにはgit addコマンドが実行された時点において、ワーキングツリーの
     # なかに存在していたすべてのファイルのblobのhash値が列挙されるのだ。ワーキングツリーの
-    # なかにファイルが1000個あったら、git addコマンドを実行するとindexは1000個分の
+    # なかにファイルが1000個あったら、git addコマンドを実行するとindexには1000個分の
     # blobが列挙されるのだ。
     # git statusコマンドを実行したとき added xxxx とか renamed yyyy -> zzzz という
     # メッセージがほんの数行応答された場合でも、indexをcat-fileしてみると1000個分のblob
     # がそこに列挙されているのだ。
     # こうなっているとは、僕はいまのいままで知らなかった。
 
-    # Gitの内幕がみえてきた。おっとビックリです。
 
 
 
